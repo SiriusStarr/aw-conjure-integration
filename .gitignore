@@ -1,0 +1,10 @@
+# Editor Stuff
+.vscode
+
+# Elm/JS
+elm-stuff
+node_modules
+
+# Generated
+src/Conjure/*
+src/main.js
