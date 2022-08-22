@@ -1,0 +1,11 @@
+{
+  "name": "aw-conjure-integration",
+  "version": "1.0.0",
+  "description": "ActivityWatch integration for conjure.so",
+  "author": "SiriusStarr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SiriusStarr/aw-conjure-integration.git"
+  },
+  "license": "GPL-3.0-or-later",
+}
