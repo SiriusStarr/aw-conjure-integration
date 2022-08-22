@@ -6,6 +6,6 @@ elm-stuff
 node_modules
 
 # Generated
-src/Conjure/*
+src/Conjure
 src/main.js
-src/main.cjs
+lib/main.cjs
