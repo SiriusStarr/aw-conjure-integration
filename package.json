@@ -8,6 +8,12 @@
     "url": "https://github.com/SiriusStarr/aw-conjure-integration.git"
   },
   "license": "GPL-3.0-or-later",
+  "type": "module",
+  "dependencies": {
+    "aw-client": "^0.3.3",
+    "env-paths": "^3.0.0",
+    "xhr2": "^0.2.1"
+  },
   "devDependencies": {
     "@dillonkearns/elm-graphql": "^4.2.4",
     "elm-doc-preview": "^5.0.5",
