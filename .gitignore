@@ -8,3 +8,4 @@ node_modules
 # Generated
 src/Conjure/*
 src/main.js
+src/main.cjs
