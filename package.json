@@ -23,7 +23,7 @@
     "standard": "^17.0.0"
   },
   "scripts": {
-    "build:api": "elm-graphql https://api.conjure.so/graphql --base Conjure",
+    "build:api": "elm-graphql https://api.conjure.so/graphql --base Conjure --scalar-codecs CustomScalarCodecs",
     "postinstall": "elm-tooling install",
     "preview-docs": "elm-doc-preview",
     "review": "elm-review --ignore-dirs src/Conjure --fix",
