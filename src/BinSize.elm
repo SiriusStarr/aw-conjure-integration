@@ -1,6 +1,5 @@
 module BinSize exposing
     ( BinSize
-    , default
     , inMinutes
     , decoder
     )
@@ -15,8 +14,6 @@ minutes within which to group events.
 
 
 # Creation
-
-@docs default
 
 
 # Unwrapping
@@ -38,13 +35,6 @@ result in longer contiguous blocks of time uploaded to Conjure.
 -}
 type BinSize
     = BinSize Int
-
-
-{-| The default value for bin sizing (15 minutes).
--}
-default : BinSize
-default =
-    BinSize 15
 
 
 {-| Unwrap a `BinSize` to a number of minutes.
