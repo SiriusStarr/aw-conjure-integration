@@ -17,6 +17,7 @@ module Settings exposing
 
 -}
 
+import Authorization exposing (PAT)
 import BinSize exposing (BinSize)
 import Dict
 import Json.Decode as Decode exposing (Decoder)
@@ -33,6 +34,7 @@ import Json.Decode.Ancillary as DecodeA
 type alias Settings =
     { binSize : BinSize
     , groupBy : GroupBy
+    , pat : PAT
     }
 
 
@@ -48,9 +50,16 @@ type GroupBy
 -}
 decoder : Decoder Settings
 decoder =
-    Decode.map2 (\binSize groupBy -> { binSize = binSize, groupBy = groupBy })
+    Decode.map3
+        (\binSize groupBy pat ->
+            { binSize = binSize
+            , groupBy = groupBy
+            , pat = pat
+            }
+        )
         (Decode.field "binSize" BinSize.decoder)
         (Decode.field "groupBy" groupByDecoder)
+        (Decode.field "pat" Authorization.decoder)
 
 
 {-| Decode `GroupBy` from Json.
