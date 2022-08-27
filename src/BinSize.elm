@@ -2,6 +2,7 @@ module BinSize exposing
     ( BinSize
     , inMinutes
     , decoder
+    , fromMinutes, default
     )
 
 {-| The `BinSize` module defines the `BinSize` type, representing a bin size in
@@ -21,6 +22,11 @@ minutes within which to group events.
 # JSON Serialization
 
 @docs decoder
+
+
+# For Testing
+
+@docs fromMinutes, default
 
 -}
 
@@ -59,3 +65,10 @@ fromMinutes i =
 
     else
         Just <| BinSize i
+
+
+{-| A default bin size.
+-}
+default : BinSize
+default =
+    BinSize 30
