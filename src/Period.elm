@@ -59,8 +59,11 @@ type Era
 
 
 {-| Given the current time, return the most recent complete period of the
-desired bin size, aligned to the hour. For example, at 13:43, with bin size of
-30 minutes, it will return the period from 13:00 to 13:30.
+desired bin size, aligned to the hour. It also includes a minute of additional
+fuzz past the end, so that ActivityWatch has a chance to get caught up.
+(Queries that end within a few seconds of the current time appear unreliable.)
+For example, at 13:43, with bin size of 30 minutes, it will return the period
+from 13:00 to 13:30.
 -}
 lastComplete : BinSize -> Time.Posix -> Period
 lastComplete binSize now =
@@ -71,7 +74,7 @@ lastComplete binSize now =
 
         mostRecentHour : Time.Posix
         mostRecentHour =
-            TimeX.floor TimeX.Hour utc now
+            TimeX.floor TimeX.Hour utc latestPossibleEnd
 
         periodsSinceHour : Int
         periodsSinceHour =
@@ -80,7 +83,11 @@ lastComplete binSize now =
 
         minutesPastHour : Int
         minutesPastHour =
-            TimeX.diff TimeX.Minute utc mostRecentHour now
+            TimeX.diff TimeX.Minute utc mostRecentHour latestPossibleEnd
+
+        latestPossibleEnd : Time.Posix
+        latestPossibleEnd =
+            TimeX.add TimeX.Minute -1 utc now
     in
     if periodsSinceHour < 1 then
         TimeX.add TimeX.Minute -binSizeInMinutes utc mostRecentHour
