@@ -28,10 +28,11 @@
     "preview-docs": "elm-doc-preview",
     "review": "elm-review --ignore-dirs src/Conjure --fix",
     "standard": "standard --fix",
-    "test": "npm-run-all --print-name --silent --sequential test:standard test:make test:format test:review",
+    "test": "npm-run-all --print-name --silent --sequential test:standard test:make test:format test:run test:review",
     "test:standard": "standard",
     "test:make": "elm make --docs=docs.json --output=/dev/null src/Main.elm",
     "test:format": "elm-format src/ --validate",
+    "test:run": "elm-test-rs",
     "test:review": "elm-review --ignore-dirs src/Conjure "
   }
 }
