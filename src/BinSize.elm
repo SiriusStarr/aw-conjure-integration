@@ -27,7 +27,9 @@ minutes within which to group events.
 
 -}
 
+import Basics.Extra as BasicsX
 import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Ancillary as DecodeA
 
 
 {-| The resolution (in minutes) by which to bin times. Increasing this will
@@ -48,12 +50,15 @@ inMinutes (BinSize i) =
 -}
 decoder : Decoder BinSize
 decoder =
-    Decode.int
-        |> Decode.andThen
-            (\i ->
-                if i < 5 || i > 60 then
-                    Decode.fail <| "Bin size must be 5-60 minutes; got: " ++ String.fromInt i
+    DecodeA.mapMaybe fromMinutes "A valid bin size must be between 5 and 60 minutes and evenly divide an hour!" Decode.int
 
-                else
-                    Decode.succeed <| BinSize i
-            )
+
+{-| Convert a number of minutes to a `BinSize`, if valid.
+-}
+fromMinutes : Int -> Maybe BinSize
+fromMinutes i =
+    if i < 5 || i > 60 || BasicsX.safeRemainderBy i 60 /= Just 0 then
+        Nothing
+
+    else
+        Just <| BinSize i
