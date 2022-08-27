@@ -1,6 +1,7 @@
 module Period exposing
     ( Period, Era
     , lastComplete, era
+    , sinceStartOfDay
     , eraToString
     , encode
     )
@@ -19,7 +20,10 @@ well as functions for working with it.
 @docs lastComplete, era
 
 
-# Creation
+# Historical
+
+@docs sinceStartOfDay
+
 
 # Conversion
 
@@ -92,6 +96,49 @@ lastComplete binSize now =
 era : Time.Posix -> Era
 era t =
     Era <| TimeX.floor TimeX.Hour utc t
+
+
+{-| Get a list of all `Era`s and `Period`s since the beginning of the local day,
+treating midnight like the beginning of the day.
+-}
+sinceStartOfDay : BinSize -> Time.Zone -> Time.Posix -> { eras : List Era, periods : List Period }
+sinceStartOfDay binSize z t =
+    let
+        binSizeInMinutes : Int
+        binSizeInMinutes =
+            BinSize.inMinutes binSize
+
+        firstEraOfLocalDay : Time.Posix
+        firstEraOfLocalDay =
+            TimeX.floor TimeX.Day z t
+                -- Ensure that it is hour-aligned
+                |> TimeX.ceiling TimeX.Hour utc
+
+        (Period latestPeriod) =
+            lastComplete binSize t
+    in
+    { eras =
+        TimeX.diff TimeX.Hour utc firstEraOfLocalDay t
+            |> List.range 0
+            |> List.map
+                (\e ->
+                    TimeX.add TimeX.Hour e utc firstEraOfLocalDay
+                        |> Era
+                )
+    , periods =
+        TimeX.diff TimeX.Minute utc firstEraOfLocalDay latestPeriod.start
+            |> (\minuteDiff -> BasicsX.safeIntegerDivide minuteDiff binSizeInMinutes)
+            -- This should crash if bin size is zero, since something has gone horribly wrong
+            |> Unwrap.maybe
+            |> List.range 0
+            |> List.map
+                (\p ->
+                    TimeX.add TimeX.Minute (binSizeInMinutes * p) utc firstEraOfLocalDay
+                        |> beginning binSize
+                )
+    }
+
+
 {-| Convert an `Era` to a `String`, for sending to Conjure.
 -}
 eraToString : Era -> String
