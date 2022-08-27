@@ -1,6 +1,7 @@
 module Period exposing
-    ( Period
-    , lastComplete
+    ( Period, Era
+    , lastComplete, era
+    , eraToString
     , encode
     )
 
@@ -10,12 +11,19 @@ well as functions for working with it.
 
 # Types
 
-@docs Period
+@docs Period, Era
+
+
+# From A Time
+
+@docs lastComplete, era
 
 
 # Creation
 
-@docs lastComplete
+# Conversion
+
+@docs eraToString
 
 
 # JSON Serialization
@@ -37,6 +45,13 @@ import Unwrap
 -}
 type Period
     = Period { start : Time.Posix, end : Time.Posix }
+
+
+{-| The Era type defines an entire block of events that can be deleted and
+rewritten in the event of the integration being started.
+-}
+type Era
+    = Era Time.Posix
 
 
 {-| Given the current time, return the most recent complete period of the
@@ -72,8 +87,20 @@ lastComplete binSize now =
             |> beginning binSize
 
 
-{-| Encode a `Period` to JSON in a format that ActivityWatch queries will support, namely
-ISO 8601 strings separated by a solidus (`/`).
+{-| Get the `Era` that a time falls in.
+-}
+era : Time.Posix -> Era
+era t =
+    Era <| TimeX.floor TimeX.Hour utc t
+{-| Convert an `Era` to a `String`, for sending to Conjure.
+-}
+eraToString : Era -> String
+eraToString (Era t) =
+    Iso8601.fromTime t
+
+
+{-| Encode a `Period` to JSON in a format that ActivityWatch queries will
+support, namely ISO 8601 strings separated by a solidus (`/`).
 -}
 encode : Period -> Encode.Value
 encode (Period { start, end }) =
