@@ -13,9 +13,6 @@ minutes within which to group events.
 @docs BinSize
 
 
-# Creation
-
-
 # Unwrapping
 
 @docs inMinutes
