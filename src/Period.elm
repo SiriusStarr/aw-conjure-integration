@@ -40,6 +40,7 @@ import Basics.Extra as BasicsX
 import BinSize exposing (BinSize)
 import Iso8601
 import Json.Encode as Encode
+import List.Nonempty as NE exposing (Nonempty(..))
 import Time exposing (utc)
 import Time.Extra as TimeX
 import Unwrap
@@ -108,7 +109,7 @@ era t =
 {-| Get a list of all `Era`s and `Period`s since the beginning of the local day,
 treating midnight like the beginning of the day.
 -}
-sinceStartOfDay : BinSize -> Time.Zone -> Time.Posix -> { eras : List Era, periods : List Period }
+sinceStartOfDay : BinSize -> Time.Zone -> Time.Posix -> Maybe { eras : Nonempty Era, periods : Nonempty Period }
 sinceStartOfDay binSize z t =
     let
         binSizeInMinutes : Int
@@ -121,29 +122,39 @@ sinceStartOfDay binSize z t =
                 -- Ensure that it is hour-aligned
                 |> TimeX.ceiling TimeX.Hour utc
 
+        periodsSinceFirstEra : Int
+        periodsSinceFirstEra =
+            TimeX.diff TimeX.Minute utc firstEraOfLocalDay latestPeriod.start
+                |> (\minuteDiff -> BasicsX.safeIntegerDivide minuteDiff binSizeInMinutes)
+                -- This should crash if bin size is zero, since something has gone horribly wrong
+                |> Unwrap.maybe
+
         (Period latestPeriod) =
             lastComplete binSize t
     in
-    { eras =
-        TimeX.diff TimeX.Hour utc firstEraOfLocalDay t
-            |> List.range 0
-            |> List.map
-                (\e ->
-                    TimeX.add TimeX.Hour e utc firstEraOfLocalDay
-                        |> Era
-                )
-    , periods =
-        TimeX.diff TimeX.Minute utc firstEraOfLocalDay latestPeriod.start
-            |> (\minuteDiff -> BasicsX.safeIntegerDivide minuteDiff binSizeInMinutes)
-            -- This should crash if bin size is zero, since something has gone horribly wrong
-            |> Unwrap.maybe
-            |> List.range 0
-            |> List.map
-                (\p ->
-                    TimeX.add TimeX.Minute (binSizeInMinutes * p) utc firstEraOfLocalDay
-                        |> beginning binSize
-                )
-    }
+    if periodsSinceFirstEra < 0 then
+        Nothing
+
+    else
+        { eras =
+            TimeX.diff TimeX.Hour utc firstEraOfLocalDay t
+                |> List.range 1
+                |> Nonempty 0
+                |> NE.map
+                    (\e ->
+                        TimeX.add TimeX.Hour e utc firstEraOfLocalDay
+                            |> Era
+                    )
+        , periods =
+            List.range 1 periodsSinceFirstEra
+                |> Nonempty 0
+                |> NE.map
+                    (\p ->
+                        TimeX.add TimeX.Minute (binSizeInMinutes * p) utc firstEraOfLocalDay
+                            |> beginning binSize
+                    )
+        }
+            |> Just
 
 
 {-| Convert an `Era` to a `String`, for sending to Conjure.
