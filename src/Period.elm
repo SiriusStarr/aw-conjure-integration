@@ -64,16 +64,12 @@ lastComplete binSize now =
             TimeX.diff TimeX.Minute utc mostRecentHour now
     in
     if periodsSinceHour < 1 then
-        Period
-            { start = TimeX.add TimeX.Minute -binSizeInMinutes utc mostRecentHour
-            , end = mostRecentHour
-            }
+        TimeX.add TimeX.Minute -binSizeInMinutes utc mostRecentHour
+            |> beginning binSize
 
     else
-        Period
-            { start = TimeX.add TimeX.Minute ((periodsSinceHour - 1) * binSizeInMinutes) utc mostRecentHour
-            , end = TimeX.add TimeX.Minute (periodsSinceHour * binSizeInMinutes) utc mostRecentHour
-            }
+        TimeX.add TimeX.Minute ((periodsSinceHour - 1) * binSizeInMinutes) utc mostRecentHour
+            |> beginning binSize
 
 
 {-| Encode a `Period` to JSON in a format that ActivityWatch queries will support, namely
@@ -83,3 +79,14 @@ encode : Period -> Encode.Value
 encode (Period { start, end }) =
     String.concat [ Iso8601.fromTime start, "/", Iso8601.fromTime end ]
         |> Encode.string
+
+
+{-| Create a period beginning at a time; note that this does not sanity check
+that the time is aligned to the bin interval so is only used internally.
+-}
+beginning : BinSize -> Time.Posix -> Period
+beginning binSize start =
+    Period
+        { start = start
+        , end = TimeX.add TimeX.Minute (BinSize.inMinutes binSize) utc start
+        }
