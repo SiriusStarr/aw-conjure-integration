@@ -4,6 +4,7 @@ module Period exposing
     , sinceStartOfDay
     , eraToString
     , encode
+    , start, end, eraStart
     )
 
 {-| The `Period` module defines the `Period` type, representing a time period, as
@@ -33,6 +34,11 @@ well as functions for working with it.
 # JSON Serialization
 
 @docs encode
+
+
+# For Testing
+
+@docs start, end, eraStart
 
 -}
 
@@ -168,17 +174,38 @@ eraToString (Era t) =
 support, namely ISO 8601 strings separated by a solidus (`/`).
 -}
 encode : Period -> Encode.Value
-encode (Period { start, end }) =
-    String.concat [ Iso8601.fromTime start, "/", Iso8601.fromTime end ]
+encode (Period p) =
+    String.concat [ Iso8601.fromTime p.start, "/", Iso8601.fromTime p.end ]
         |> Encode.string
+
+
+{-| Get the start time of a `Period`.
+-}
+start : Period -> Time.Posix
+start (Period p) =
+    p.start
+
+
+{-| Get the end time of a `Period`.
+-}
+end : Period -> Time.Posix
+end (Period p) =
+    p.end
+
+
+{-| Get the start time of an `Era`.
+-}
+eraStart : Era -> Time.Posix
+eraStart (Era t) =
+    t
 
 
 {-| Create a period beginning at a time; note that this does not sanity check
 that the time is aligned to the bin interval so is only used internally.
 -}
 beginning : BinSize -> Time.Posix -> Period
-beginning binSize start =
+beginning binSize startAt =
     Period
-        { start = start
-        , end = TimeX.add TimeX.Minute (BinSize.inMinutes binSize) utc start
+        { start = startAt
+        , end = TimeX.add TimeX.Minute (BinSize.inMinutes binSize) utc startAt
         }
