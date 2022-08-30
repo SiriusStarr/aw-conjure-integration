@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "aw-client": "^0.3.3",
+    "commander": "^9.4.0",
     "env-paths": "^3.0.0",
     "xhr2": "^0.2.1"
   },
