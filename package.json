@@ -7,6 +7,10 @@
     "type": "git",
     "url": "https://github.com/SiriusStarr/aw-conjure-integration.git"
   },
+  "bugs": {
+    "url": "https://github.com/SiriusStarr/aw-conjure-integration/issues"
+  },
+  "homepage": "https://github.com/SiriusStarr/aw-conjure-integration#readme",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "dependencies": {
