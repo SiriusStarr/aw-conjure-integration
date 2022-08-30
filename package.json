@@ -13,6 +13,9 @@
   "homepage": "https://github.com/SiriusStarr/aw-conjure-integration#readme",
   "license": "GPL-3.0-or-later",
   "type": "module",
+  "bin": {
+    "aw-conjure-integration": "bin/aw-conjure-integration"
+  },
   "dependencies": {
     "aw-client": "^0.3.3",
     "env-paths": "^3.0.0",
@@ -28,7 +31,10 @@
     "standard": "^17.0.0"
   },
   "scripts": {
+    "build": "npm-run-all --print-name --silent --sequential build:api build:elm",
     "build:api": "elm-graphql https://api.conjure.so/graphql --base Conjure --scalar-codecs CustomScalarCodecs",
+    "build:elm": "elm make --optimize src/Main.elm --output src/main.js",
+    "postbuild:elm": "mv src/main.js lib/main.cjs",
     "postinstall": "elm-tooling install",
     "preview-docs": "elm-doc-preview",
     "review": "elm-review --ignore-dirs src/Conjure --fix",
