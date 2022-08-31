@@ -1,5 +1,6 @@
 module CustomScalarCodecs exposing
     ( ISO8601Date, ISO8601DateTime, Id, Json
+    , viewId
     , codecs
     )
 
@@ -10,6 +11,11 @@ API uses.
 # Types
 
 @docs ISO8601Date, ISO8601DateTime, Id, Json
+
+
+# View
+
+@docs viewId
 
 
 # Serialization
@@ -51,6 +57,13 @@ type Id
 -}
 type alias Json =
     Encode.Value
+
+
+{-| Display an ID in a manner suitable for humans to read.
+-}
+viewId : Id -> String
+viewId (Id s) =
+    s
 
 
 {-| Codecs for serialization of Conjure's scalar types.
