@@ -19,8 +19,7 @@
   "dependencies": {
     "aw-client": "^0.3.3",
     "commander": "^9.4.0",
-    "env-paths": "^3.0.0",
-    "xhr2": "^0.2.1"
+    "env-paths": "^3.0.0"
   },
   "devDependencies": {
     "@dillonkearns/elm-graphql": "^4.2.4",
@@ -46,5 +45,10 @@
     "test:format": "elm-format src/ tests/ --validate",
     "test:run": "elm-test-rs",
     "test:review": "elm-review --ignore-dirs src/Conjure "
+  },
+  "standard": {
+    "ignore": [
+      "lib/xmlhttprequest.cjs"
+    ]
   }
 }
