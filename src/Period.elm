@@ -1,10 +1,9 @@
 module Period exposing
     ( Period, Era
-    , lastComplete, era
-    , sinceStartOfDay
-    , eraToString
+    , sinceLastCompleteAt, sinceStartOfDay
+    , era, eraToString
     , encode
-    , start, end, eraStart
+    , start, end, eraStart, lastComplete
     )
 
 {-| The `Period` module defines the `Period` type, representing a time period, as
@@ -16,19 +15,14 @@ well as functions for working with it.
 @docs Period, Era
 
 
-# From A Time
+# Periods Between
 
-@docs lastComplete, era
-
-
-# Historical
-
-@docs sinceStartOfDay
+@docs sinceLastCompleteAt, sinceStartOfDay
 
 
-# Conversion
+# Eras
 
-@docs eraToString
+@docs era, eraToString
 
 
 # JSON Serialization
@@ -38,7 +32,7 @@ well as functions for working with it.
 
 # For Testing
 
-@docs start, end, eraStart
+@docs start, end, eraStart, lastComplete
 
 -}
 
@@ -63,6 +57,89 @@ rewritten in the event of the integration being started.
 -}
 type Era
     = Era Time.Posix
+
+
+{-| Given a `BinSize`, a time periods were last generated, and the current time,
+get a list of any periods that have been completed.
+-}
+sinceLastCompleteAt : BinSize -> Time.Posix -> Time.Posix -> Maybe (Nonempty Period)
+sinceLastCompleteAt binSize lastTime =
+    lastComplete binSize lastTime
+        |> end
+        |> sinceEndOfPeriod binSize
+
+
+{-| Get a list of all `Era`s and `Period`s since the beginning of the local day,
+treating midnight like the beginning of the day.
+-}
+sinceStartOfDay : BinSize -> Time.Zone -> Time.Posix -> Maybe { eras : Nonempty Era, periods : Nonempty Period }
+sinceStartOfDay binSize zone now =
+    let
+        firstEraOfLocalDay : Time.Posix
+        firstEraOfLocalDay =
+            TimeX.floor TimeX.Day zone now
+                -- Ensure that it is hour-aligned
+                |> TimeX.ceiling TimeX.Hour utc
+    in
+    sinceEndOfPeriod binSize firstEraOfLocalDay now
+        |> Maybe.map
+            (\ps ->
+                { eras =
+                    TimeX.diff TimeX.Hour utc firstEraOfLocalDay now
+                        |> List.range 1
+                        |> Nonempty 0
+                        |> NE.map
+                            (\e ->
+                                TimeX.add TimeX.Hour e utc firstEraOfLocalDay
+                                    |> Era
+                            )
+                , periods = ps
+                }
+            )
+
+
+{-| Get the `Era` that a time falls in.
+-}
+era : Time.Posix -> Era
+era t =
+    Era <| TimeX.floor TimeX.Hour utc t
+
+
+{-| Convert an `Era` to a `String`, for sending to Conjure.
+-}
+eraToString : Era -> String
+eraToString (Era t) =
+    Iso8601.fromTime t
+
+
+{-| Encode a `Period` to JSON in a format that ActivityWatch queries will
+support, namely ISO 8601 strings separated by a solidus (`/`).
+-}
+encode : Period -> Encode.Value
+encode (Period p) =
+    String.concat [ Iso8601.fromTime p.start, "/", Iso8601.fromTime p.end ]
+        |> Encode.string
+
+
+{-| Get the start time of a `Period`.
+-}
+start : Period -> Time.Posix
+start (Period p) =
+    p.start
+
+
+{-| Get the end time of a `Period`.
+-}
+end : Period -> Time.Posix
+end (Period p) =
+    p.end
+
+
+{-| Get the start time of an `Era`.
+-}
+eraStart : Era -> Time.Posix
+eraStart (Era t) =
+    t
 
 
 {-| Given the current time, return the most recent complete period of the
@@ -103,79 +180,6 @@ lastComplete binSize now =
     else
         TimeX.add TimeX.Minute ((periodsSinceHour - 1) * binSizeInMinutes) utc mostRecentHour
             |> beginning binSize
-
-
-{-| Get the `Era` that a time falls in.
--}
-era : Time.Posix -> Era
-era t =
-    Era <| TimeX.floor TimeX.Hour utc t
-
-
-{-| Get a list of all `Era`s and `Period`s since the beginning of the local day,
-treating midnight like the beginning of the day.
--}
-sinceStartOfDay : BinSize -> Time.Zone -> Time.Posix -> Maybe { eras : Nonempty Era, periods : Nonempty Period }
-sinceStartOfDay binSize zone now =
-    let
-        firstEraOfLocalDay : Time.Posix
-        firstEraOfLocalDay =
-            TimeX.floor TimeX.Day zone now
-                -- Ensure that it is hour-aligned
-                |> TimeX.ceiling TimeX.Hour utc
-    in
-    sinceEndOfPeriod binSize firstEraOfLocalDay now
-        |> Maybe.map
-            (\ps ->
-                { eras =
-                    TimeX.diff TimeX.Hour utc firstEraOfLocalDay now
-                        |> List.range 1
-                        |> Nonempty 0
-                        |> NE.map
-                            (\e ->
-                                TimeX.add TimeX.Hour e utc firstEraOfLocalDay
-                                    |> Era
-                            )
-                , periods = ps
-                }
-            )
-
-
-{-| Convert an `Era` to a `String`, for sending to Conjure.
--}
-eraToString : Era -> String
-eraToString (Era t) =
-    Iso8601.fromTime t
-
-
-{-| Encode a `Period` to JSON in a format that ActivityWatch queries will
-support, namely ISO 8601 strings separated by a solidus (`/`).
--}
-encode : Period -> Encode.Value
-encode (Period p) =
-    String.concat [ Iso8601.fromTime p.start, "/", Iso8601.fromTime p.end ]
-        |> Encode.string
-
-
-{-| Get the start time of a `Period`.
--}
-start : Period -> Time.Posix
-start (Period p) =
-    p.start
-
-
-{-| Get the end time of a `Period`.
--}
-end : Period -> Time.Posix
-end (Period p) =
-    p.end
-
-
-{-| Get the start time of an `Era`.
--}
-eraStart : Era -> Time.Posix
-eraStart (Era t) =
-    t
 
 
 {-| Create a period beginning at a time; note that this does not sanity check
@@ -222,13 +226,3 @@ sinceEndOfPeriod binSize endOfPeriod now =
                         |> beginning binSize
                 )
             |> Just
-
-
-{-| Given a `BinSize`, a time periods were last generated, and the current time,
-get a list of any periods that have been completed.
--}
-sinceLastCompleteAt : BinSize -> Time.Posix -> Time.Posix -> Maybe (Nonempty Period)
-sinceLastCompleteAt binSize lastTime =
-    lastComplete binSize lastTime
-        |> end
-        |> sinceEndOfPeriod binSize
