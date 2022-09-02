@@ -37,7 +37,7 @@ module Measure exposing
 
 import Conjure.Enum.MeasureType exposing (MeasureType(..))
 import Conjure.Object as Conjure
-import Conjure.Object.Measure as ConjureMeasure
+import Conjure.Object.Measure as Measure
 import CustomScalarCodecs
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 
@@ -100,7 +100,7 @@ selectionSet =
                 _ ->
                     Nothing
         )
-        ConjureMeasure.id
-        ConjureMeasure.name
-        ConjureMeasure.position
-        ConjureMeasure.measureType
+        Measure.id
+        Measure.name
+        Measure.position
+        Measure.measureType
