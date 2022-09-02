@@ -222,3 +222,13 @@ sinceEndOfPeriod binSize endOfPeriod now =
                         |> beginning binSize
                 )
             |> Just
+
+
+{-| Given a `BinSize`, a time periods were last generated, and the current time,
+get a list of any periods that have been completed.
+-}
+sinceLastCompleteAt : BinSize -> Time.Posix -> Time.Posix -> Maybe (Nonempty Period)
+sinceLastCompleteAt binSize lastTime =
+    lastComplete binSize lastTime
+        |> end
+        |> sinceEndOfPeriod binSize
