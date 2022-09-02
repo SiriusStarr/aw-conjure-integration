@@ -6,11 +6,13 @@ import BinSizeTest
 import Expect
 import Fuzz exposing (Fuzzer)
 import List.Nonempty as NE
+import Maybe.Extra as MaybeX
 import Period exposing (Era, Period)
 import Random
 import Test exposing (Test, describe, fuzz, fuzz2, fuzz3)
 import Time exposing (utc)
-import Time.Extra as TimeX
+import Time.Extra as TimeX exposing (Interval(..))
+import Unwrap
 
 
 {-| `Period` tests.
@@ -21,6 +23,7 @@ suite =
         [ lastCompleteSuite
         , eraSuite
         , sinceStartOfDaySuite
+        , sinceLastCompleteAtSuite
         ]
 
 
@@ -151,6 +154,59 @@ sinceStartOfDaySuite =
                     Nothing ->
                         Expect.pass
         ]
+
+
+sinceLastCompleteAtSuite : Test
+sinceLastCompleteAtSuite =
+    describe "sinceLastCompleteAt"
+        [ fuzz2 BinSizeTest.fuzzer fuzzTime "should not return any value if time is the same" <|
+            \binSize time ->
+                Period.sinceLastCompleteAt binSize time time
+                    |> Expect.equal Nothing
+        , fuzz3 BinSizeTest.fuzzer fuzzTime fuzzTime "should not return any value if new time is less than old time" <|
+            \binSize time1 time2 ->
+                if Time.posixToMillis time1 <= Time.posixToMillis time2 then
+                    Period.sinceLastCompleteAt binSize time2 time1
+                        |> Expect.equal Nothing
+
+                else
+                    Period.sinceLastCompleteAt binSize time1 time2
+                        |> Expect.equal Nothing
+        , fuzz3 BinSizeTest.fuzzer fuzzTime (Fuzz.intRange 0 2000) "should not return any value if new time is less than old time + bin size" <|
+            \binSize time diffInMin ->
+                let
+                    binSizeInMin : Int
+                    binSizeInMin =
+                        BinSize.inMinutes binSize
+                in
+                if diffInMin < binSizeInMin + 1 then
+                    TimeX.add Minute diffInMin utc time
+                        |> (\time2 ->
+                                Period.sinceLastCompleteAt binSize time time2
+                                    |> Expect.equal
+                                        (if Period.lastComplete binSize time == Period.lastComplete binSize time2 then
+                                            Nothing
+
+                                         else
+                                            Just <| NE.singleton <| Period.lastComplete binSize time2
+                                        )
+                           )
+
+                else
+                    let
+                        diffInBins : Int
+                        diffInBins =
+                            Unwrap.maybe <| BasicsX.safeIntegerDivide diffInMin binSizeInMin
+                    in
+                    TimeX.add Minute diffInMin utc time
+                        |> Period.sinceLastCompleteAt binSize time
+                        |> Maybe.map NE.length
+                        |> MaybeX.unwrap (Expect.fail "Expected at least 1 period")
+                            (Expect.all
+                                [ Expect.atLeast diffInBins
+                                , Expect.atMost <| diffInBins + 1
+                                ]
+                            )
         ]
 
 
