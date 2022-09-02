@@ -1,5 +1,6 @@
 module Event exposing
     ( Event
+    , binKey
     , isInCategories, isRelevant
     , sortByDuration
     , toMeasurement, viewDetails
@@ -13,6 +14,11 @@ time tracked by ActivityWatch, as well as functions for working with it.
 # Types
 
 @docs Event
+
+
+# API Key Values
+
+@docs binKey
 
 
 # Filtering
@@ -70,6 +76,13 @@ type Event
         }
 
 
+{-| The binning key for `Event`s for the Conjure API.
+-}
+binKey : String
+binKey =
+    "aw-conjure-integration-era"
+
+
 {-| Check if an `Event` falls in any of the provided categories.
 -}
 isInCategories : Event -> Nonempty CategoryName -> Bool
@@ -104,13 +117,9 @@ Conjure API.
 toMeasurement : GroupBy -> Event -> { attributes : MeasurementAttributes, key : String, val : String }
 toMeasurement groupBy ((Event { startTime, duration, category }) as e) =
     let
-        binKeyVal : { key : String, val : String }
-        binKeyVal =
-            toBinKeyVal e
-
         uniqueKeyVal : { key : String, val : String }
         uniqueKeyVal =
-            toUniqueKeyVal groupBy e
+            { key = uniqueKey, val = uniqueVal groupBy e }
     in
     { attributes =
         Conjure.buildMeasurementAttributes
@@ -144,8 +153,8 @@ toMeasurement groupBy ((Event { startTime, duration, category }) as e) =
                         , Conjure.buildMeasurementableMetaItemAttributes
                             (\r_ ->
                                 { r_
-                                    | key = Optional.Present binKeyVal.key
-                                    , value = Optional.Present binKeyVal.val
+                                    | key = Optional.Present binKey
+                                    , value = Optional.Present <| binVal e
                                 }
                             )
                         ]
@@ -157,41 +166,44 @@ toMeasurement groupBy ((Event { startTime, duration, category }) as e) =
     }
 
 
-{-| Generate the binning key and value from an `Event` for the Conjure API.
+{-| Generate the binning value from an `Event` for the Conjure API.
 -}
-toBinKeyVal : Event -> { key : String, val : String }
-toBinKeyVal (Event { startTime }) =
-    { key = "aw-conjure-integration-era"
-    , val = Period.eraToString <| Period.era startTime
-    }
+binVal : Event -> String
+binVal (Event { startTime }) =
+    Period.eraToString <| Period.era startTime
 
 
-{-| Generate the unique key and value from an `Event` for the Conjure API.
+{-| The key for unique values for `Event`s for the Conjure API, so that an
+individual event can be updated without a duplicate made.
 -}
-toUniqueKeyVal : GroupBy -> Event -> { key : String, val : String }
-toUniqueKeyVal groupBy (Event { app, title, startTime, category }) =
+uniqueKey : String
+uniqueKey =
+    "aw-conjure-integration-event-id"
+
+
+{-| Generate the unique value from an `Event` for the Conjure API.
+-}
+uniqueVal : GroupBy -> Event -> String
+uniqueVal groupBy (Event { app, title, startTime, category }) =
     let
         magicNumberDonutSteal : Int
         magicNumberDonutSteal =
             -- An entirely arbitrary salt
             24117
     in
-    { key = "aw-conjure-integration-event-id"
-    , val =
-        String.concat
-            [ case groupBy of
-                Category ->
-                    FNV1a.hashWithSeed (Category.nameToString category) magicNumberDonutSteal
-                        |> String.fromInt
+    String.concat
+        [ case groupBy of
+            Category ->
+                FNV1a.hashWithSeed (Category.nameToString category) magicNumberDonutSteal
+                    |> String.fromInt
 
-                AppAndTitle ->
-                    FNV1a.hashWithSeed app magicNumberDonutSteal
-                        |> FNV1a.hashWithSeed title
-                        |> String.fromInt
-            , " - "
-            , Iso8601.fromTime startTime
-            ]
-    }
+            AppAndTitle ->
+                FNV1a.hashWithSeed app magicNumberDonutSteal
+                    |> FNV1a.hashWithSeed title
+                    |> String.fromInt
+        , " - "
+        , Iso8601.fromTime startTime
+        ]
 
 
 {-| Turn an `Event` into a detailed string, for user review.
