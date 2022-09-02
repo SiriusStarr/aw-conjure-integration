@@ -116,51 +116,29 @@ era t =
 treating midnight like the beginning of the day.
 -}
 sinceStartOfDay : BinSize -> Time.Zone -> Time.Posix -> Maybe { eras : Nonempty Era, periods : Nonempty Period }
-sinceStartOfDay binSize z t =
+sinceStartOfDay binSize zone now =
     let
-        binSizeInMinutes : Int
-        binSizeInMinutes =
-            BinSize.inMinutes binSize
-
         firstEraOfLocalDay : Time.Posix
         firstEraOfLocalDay =
-            TimeX.floor TimeX.Day z t
+            TimeX.floor TimeX.Day zone now
                 -- Ensure that it is hour-aligned
                 |> TimeX.ceiling TimeX.Hour utc
-
-        periodsSinceFirstEra : Int
-        periodsSinceFirstEra =
-            TimeX.diff TimeX.Minute utc firstEraOfLocalDay latestPeriod.start
-                |> (\minuteDiff -> BasicsX.safeIntegerDivide minuteDiff binSizeInMinutes)
-                -- This should crash if bin size is zero, since something has gone horribly wrong
-                |> Unwrap.maybe
-
-        (Period latestPeriod) =
-            lastComplete binSize t
     in
-    if periodsSinceFirstEra < 0 then
-        Nothing
-
-    else
-        { eras =
-            TimeX.diff TimeX.Hour utc firstEraOfLocalDay t
-                |> List.range 1
-                |> Nonempty 0
-                |> NE.map
-                    (\e ->
-                        TimeX.add TimeX.Hour e utc firstEraOfLocalDay
-                            |> Era
-                    )
-        , periods =
-            List.range 1 periodsSinceFirstEra
-                |> Nonempty 0
-                |> NE.map
-                    (\p ->
-                        TimeX.add TimeX.Minute (binSizeInMinutes * p) utc firstEraOfLocalDay
-                            |> beginning binSize
-                    )
-        }
-            |> Just
+    sinceEndOfPeriod binSize firstEraOfLocalDay now
+        |> Maybe.map
+            (\ps ->
+                { eras =
+                    TimeX.diff TimeX.Hour utc firstEraOfLocalDay now
+                        |> List.range 1
+                        |> Nonempty 0
+                        |> NE.map
+                            (\e ->
+                                TimeX.add TimeX.Hour e utc firstEraOfLocalDay
+                                    |> Era
+                            )
+                , periods = ps
+                }
+            )
 
 
 {-| Convert an `Era` to a `String`, for sending to Conjure.
@@ -209,3 +187,38 @@ beginning binSize startAt =
         { start = startAt
         , end = TimeX.add TimeX.Minute (BinSize.inMinutes binSize) utc startAt
         }
+
+
+{-| Given a bin size and the end of a period (it is not checked that this is
+aligned to an era plus a multiple of a bin size, so this function is not
+exposed), return all periods between that and the last complete one, if any.
+-}
+sinceEndOfPeriod : BinSize -> Time.Posix -> Time.Posix -> Maybe (Nonempty Period)
+sinceEndOfPeriod binSize endOfPeriod now =
+    let
+        binSizeInMinutes : Int
+        binSizeInMinutes =
+            BinSize.inMinutes binSize
+
+        periodsSinceLast : Int
+        periodsSinceLast =
+            TimeX.diff TimeX.Minute utc endOfPeriod latestPeriod.start
+                |> (\minuteDiff -> BasicsX.safeIntegerDivide minuteDiff binSizeInMinutes)
+                -- This should crash if bin size is zero, since something has gone horribly wrong
+                |> Unwrap.maybe
+
+        (Period latestPeriod) =
+            lastComplete binSize now
+    in
+    if periodsSinceLast < 0 then
+        Nothing
+
+    else
+        List.range 1 periodsSinceLast
+            |> Nonempty 0
+            |> NE.map
+                (\p ->
+                    TimeX.add TimeX.Minute (binSizeInMinutes * p) utc endOfPeriod
+                        |> beginning binSize
+                )
+            |> Just
