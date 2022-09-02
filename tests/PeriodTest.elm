@@ -27,6 +27,26 @@ suite =
         ]
 
 
+eraSuite : Test
+eraSuite =
+    describe "era"
+        [ fuzz fuzzTime "is never after the current time" <|
+            \time ->
+                Period.era time
+                    |> Period.eraStart
+                    |> Time.posixToMillis
+                    |> Expect.atMost (Time.posixToMillis time)
+        , fuzz fuzzTime "is always aligned to a UTC hour" <|
+            \time ->
+                Period.era time
+                    |> Period.eraStart
+                    |> Time.posixToMillis
+                    -- Milliseconds per hour
+                    |> remainderBy 3600000
+                    |> Expect.equal 0
+        ]
+
+
 lastCompleteSuite : Test
 lastCompleteSuite =
     describe "lastComplete"
@@ -63,23 +83,57 @@ lastCompleteSuite =
         ]
 
 
-eraSuite : Test
-eraSuite =
-    describe "era"
-        [ fuzz fuzzTime "is never after the current time" <|
-            \time ->
-                Period.era time
-                    |> Period.eraStart
-                    |> Time.posixToMillis
-                    |> Expect.atMost (Time.posixToMillis time)
-        , fuzz fuzzTime "is always aligned to a UTC hour" <|
-            \time ->
-                Period.era time
-                    |> Period.eraStart
-                    |> Time.posixToMillis
-                    -- Milliseconds per hour
-                    |> remainderBy 3600000
-                    |> Expect.equal 0
+sinceLastCompleteAtSuite : Test
+sinceLastCompleteAtSuite =
+    describe "sinceLastCompleteAt"
+        [ fuzz2 BinSizeTest.fuzzer fuzzTime "should not return any value if time is the same" <|
+            \binSize time ->
+                Period.sinceLastCompleteAt binSize time time
+                    |> Expect.equal Nothing
+        , fuzz3 BinSizeTest.fuzzer fuzzTime fuzzTime "should not return any value if new time is less than old time" <|
+            \binSize time1 time2 ->
+                if Time.posixToMillis time1 <= Time.posixToMillis time2 then
+                    Period.sinceLastCompleteAt binSize time2 time1
+                        |> Expect.equal Nothing
+
+                else
+                    Period.sinceLastCompleteAt binSize time1 time2
+                        |> Expect.equal Nothing
+        , fuzz3 BinSizeTest.fuzzer fuzzTime (Fuzz.intRange 0 2000) "should not return any value if new time is less than old time + bin size" <|
+            \binSize time diffInMin ->
+                let
+                    binSizeInMin : Int
+                    binSizeInMin =
+                        BinSize.inMinutes binSize
+                in
+                if diffInMin < binSizeInMin + 1 then
+                    TimeX.add Minute diffInMin utc time
+                        |> (\time2 ->
+                                Period.sinceLastCompleteAt binSize time time2
+                                    |> Expect.equal
+                                        (if Period.lastComplete binSize time == Period.lastComplete binSize time2 then
+                                            Nothing
+
+                                         else
+                                            Just <| NE.singleton <| Period.lastComplete binSize time2
+                                        )
+                           )
+
+                else
+                    let
+                        diffInBins : Int
+                        diffInBins =
+                            Unwrap.maybe <| BasicsX.safeIntegerDivide diffInMin binSizeInMin
+                    in
+                    TimeX.add Minute diffInMin utc time
+                        |> Period.sinceLastCompleteAt binSize time
+                        |> Maybe.map NE.length
+                        |> MaybeX.unwrap (Expect.fail "Expected at least 1 period")
+                            (Expect.all
+                                [ Expect.atLeast diffInBins
+                                , Expect.atMost <| diffInBins + 1
+                                ]
+                            )
         ]
 
 
@@ -156,74 +210,12 @@ sinceStartOfDaySuite =
         ]
 
 
-sinceLastCompleteAtSuite : Test
-sinceLastCompleteAtSuite =
-    describe "sinceLastCompleteAt"
-        [ fuzz2 BinSizeTest.fuzzer fuzzTime "should not return any value if time is the same" <|
-            \binSize time ->
-                Period.sinceLastCompleteAt binSize time time
-                    |> Expect.equal Nothing
-        , fuzz3 BinSizeTest.fuzzer fuzzTime fuzzTime "should not return any value if new time is less than old time" <|
-            \binSize time1 time2 ->
-                if Time.posixToMillis time1 <= Time.posixToMillis time2 then
-                    Period.sinceLastCompleteAt binSize time2 time1
-                        |> Expect.equal Nothing
-
-                else
-                    Period.sinceLastCompleteAt binSize time1 time2
-                        |> Expect.equal Nothing
-        , fuzz3 BinSizeTest.fuzzer fuzzTime (Fuzz.intRange 0 2000) "should not return any value if new time is less than old time + bin size" <|
-            \binSize time diffInMin ->
-                let
-                    binSizeInMin : Int
-                    binSizeInMin =
-                        BinSize.inMinutes binSize
-                in
-                if diffInMin < binSizeInMin + 1 then
-                    TimeX.add Minute diffInMin utc time
-                        |> (\time2 ->
-                                Period.sinceLastCompleteAt binSize time time2
-                                    |> Expect.equal
-                                        (if Period.lastComplete binSize time == Period.lastComplete binSize time2 then
-                                            Nothing
-
-                                         else
-                                            Just <| NE.singleton <| Period.lastComplete binSize time2
-                                        )
-                           )
-
-                else
-                    let
-                        diffInBins : Int
-                        diffInBins =
-                            Unwrap.maybe <| BasicsX.safeIntegerDivide diffInMin binSizeInMin
-                    in
-                    TimeX.add Minute diffInMin utc time
-                        |> Period.sinceLastCompleteAt binSize time
-                        |> Maybe.map NE.length
-                        |> MaybeX.unwrap (Expect.fail "Expected at least 1 period")
-                            (Expect.all
-                                [ Expect.atLeast diffInBins
-                                , Expect.atMost <| diffInBins + 1
-                                ]
-                            )
-        ]
-
-
 {-| Find the first era of the day for a zone and time.
 -}
 firstEraOfLocalDay : Time.Zone -> Time.Posix -> Time.Posix
 firstEraOfLocalDay zone time =
     TimeX.floor TimeX.Day zone time
         |> TimeX.ceiling TimeX.Hour utc
-
-
-{-| Fuzz a time that is at least one day past the epoch.
--}
-fuzzTime : Fuzzer Time.Posix
-fuzzTime =
-    Fuzz.intRange 86400 Random.maxInt
-        |> Fuzz.map (\i -> Time.millisToPosix (1000 * i))
 
 
 {-| Real zones are between UTC−12:00 and UTC+14:00. We'll be more robust and
@@ -235,3 +227,11 @@ fuzzZone =
     --  14 * 60 =  840
     Fuzz.intRange -720 840
         |> Fuzz.map (\offset -> Time.customZone offset [])
+
+
+{-| Fuzz a time that is at least one day past the epoch.
+-}
+fuzzTime : Fuzzer Time.Posix
+fuzzTime =
+    Fuzz.intRange 86400 Random.maxInt
+        |> Fuzz.map (\i -> Time.millisToPosix (1000 * i))
