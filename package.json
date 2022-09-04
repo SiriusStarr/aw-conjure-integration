@@ -33,17 +33,17 @@
   "scripts": {
     "build": "npm-run-all --print-name --silent --sequential build:api build:elm",
     "build:api": "elm-graphql https://api.conjure.so/graphql --base Conjure --scalar-codecs CustomScalarCodecs",
-    "build:elm": "elm make --optimize src/Main.elm --output src/main.js",
-    "postbuild:elm": "mv src/main.js lib/main.cjs",
+    "build:elm": "elm make --optimize src/Bin/Run.elm --output src/Bin/run.js && elm make --optimize src/Bin/ListMeasures.elm --output src/Bin/list-measures.js",
+    "postbuild:elm": "mv src/Bin/run.js lib/run.cjs && mv src/Bin/list-measures.js lib/list-measures.cjs",
     "postinstall": "elm-tooling install",
     "preview-docs": "elm-doc-preview",
     "review": "elm-review --ignore-dirs src/Conjure --fix",
     "standard": "standard --fix",
     "test": "npm-run-all --print-name --silent --sequential test:standard test:make test:format test:run test:review",
     "test:standard": "standard",
-    "test:make": "elm make --docs=docs.json --output=/dev/null src/Main.elm",
+    "test:make": "elm make --docs=docs.json --output=/dev/null src/Bin/Run.elm && elm make --docs=docs.json --output=/dev/null src/Bin/ListMeasures.elm",
     "test:format": "elm-format src/ tests/ --validate",
-    "test:run": "elm-test-rs",
+    "test:run": "elm-test-rs --fuzz 1000",
     "test:review": "elm-review --ignore-dirs src/Conjure "
   },
   "standard": {
