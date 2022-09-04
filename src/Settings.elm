@@ -29,12 +29,16 @@ import Json.Decode.Ancillary as DecodeA
   - `binSize` -- The bin size to group events within.
   - `groupBy` -- How to group together events, e.g. simply by category or by app
     and title.
+  - `pat` -- Auth for the Conjure API.
+  - `reportUnmatched` -- Whether or not to report `Event`s that do not match a
+    known `Category`/`Link`.
 
 -}
 type alias Settings =
     { binSize : BinSize
     , groupBy : GroupBy
     , pat : PAT
+    , reportUnmatched : Bool
     }
 
 
@@ -50,16 +54,18 @@ type GroupBy
 -}
 decoder : Decoder Settings
 decoder =
-    Decode.map3
-        (\binSize groupBy pat ->
+    Decode.map4
+        (\binSize groupBy pat reportUnmatched ->
             { binSize = binSize
             , groupBy = groupBy
             , pat = pat
+            , reportUnmatched = reportUnmatched
             }
         )
         (Decode.field "binSize" BinSize.decoder)
         (Decode.field "groupBy" groupByDecoder)
         (Decode.field "pat" Authorization.decoder)
+        (Decode.field "reportUnmatched" Decode.bool)
 
 
 {-| Decode `GroupBy` from Json.
