@@ -2,7 +2,7 @@ module Period exposing
     ( Period, Era
     , sinceLastCompleteAt, sinceStartOfDay
     , era, eraToString
-    , encodeAsIso8601
+    , decoder, encode, encodeAsIso8601
     , start, end, eraStart, lastComplete
     )
 
@@ -27,7 +27,7 @@ well as functions for working with it.
 
 # JSON Serialization
 
-@docs encodeAsIso8601
+@docs decoder, encode, encodeAsIso8601
 
 
 # For Testing
@@ -39,6 +39,7 @@ well as functions for working with it.
 import Basics.Extra as BasicsX
 import BinSize exposing (BinSize)
 import Iso8601
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import List.Nonempty as NE exposing (Nonempty(..))
 import Time exposing (utc)
@@ -110,6 +111,31 @@ era t =
 eraToString : Era -> String
 eraToString (Era t) =
     Iso8601.fromTime t
+
+
+{-| Decode a `Period` from JSON.
+-}
+decoder : Decoder Period
+decoder =
+    Decode.map2
+        (\s e ->
+            Period
+                { start = Time.millisToPosix s
+                , end = Time.millisToPosix e
+                }
+        )
+        (Decode.field "start" Decode.int)
+        (Decode.field "end" Decode.int)
+
+
+{-| Encode a `Period` to JSON in a format easy to parse back.
+-}
+encode : Period -> Encode.Value
+encode (Period p) =
+    Encode.object
+        [ ( "start", Encode.int <| Time.posixToMillis p.start )
+        , ( "end", Encode.int <| Time.posixToMillis p.end )
+        ]
 
 
 {-| Encode a `Period` to JSON in a format that ActivityWatch queries will
