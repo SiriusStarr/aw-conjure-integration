@@ -18,14 +18,16 @@ import Period exposing (Period)
 import Settings exposing (GroupBy(..), Settings)
 
 
-{-| Given settings, known categories, and a list of time periods, create a query
+{-| Given settings, known categories, time submitted, and a list of time periods, create a query
 for all events falling in those periods.
 -}
-encode : Settings -> Nonempty Category -> Nonempty Period -> Encode.Value
-encode settings categories timePeriods =
+encode : Settings -> Nonempty Category -> Time.Posix -> Nonempty Period -> Encode.Value
+encode settings categories timeSubmitted timePeriods =
     Encode.object
         [ ( "queryPeriods", NEA.encodeArray Period.encodeAsIso8601 timePeriods )
         , ( "query", buildQuery settings categories )
+        , ( "periods", NEA.encodeArray Period.encode timePeriods )
+        , ( "timeSubmitted", Encode.int <| Time.posixToMillis timeSubmitted )
         ]
 
 
