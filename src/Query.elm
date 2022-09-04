@@ -24,7 +24,7 @@ for all events falling in those periods.
 encode : Settings -> Nonempty Category -> Nonempty Period -> Encode.Value
 encode settings categories timePeriods =
     Encode.object
-        [ ( "timePeriods", NEA.encodeArray Period.encode timePeriods )
+        [ ( "queryPeriods", NEA.encodeArray Period.encodeAsIso8601 timePeriods )
         , ( "query", buildQuery settings categories )
         ]
 

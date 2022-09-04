@@ -2,7 +2,7 @@ module Period exposing
     ( Period, Era
     , sinceLastCompleteAt, sinceStartOfDay
     , era, eraToString
-    , encode
+    , encodeAsIso8601
     , start, end, eraStart, lastComplete
     )
 
@@ -27,7 +27,7 @@ well as functions for working with it.
 
 # JSON Serialization
 
-@docs encode
+@docs encodeAsIso8601
 
 
 # For Testing
@@ -115,8 +115,8 @@ eraToString (Era t) =
 {-| Encode a `Period` to JSON in a format that ActivityWatch queries will
 support, namely ISO 8601 strings separated by a solidus (`/`).
 -}
-encode : Period -> Encode.Value
-encode (Period p) =
+encodeAsIso8601 : Period -> Encode.Value
+encodeAsIso8601 (Period p) =
     String.concat [ Iso8601.fromTime p.start, "/", Iso8601.fromTime p.end ]
         |> Encode.string
 
