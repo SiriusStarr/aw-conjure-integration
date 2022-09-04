@@ -65,15 +65,11 @@ type Link
 {-| Given `Link`s and `Events`, match `Event`s to the first matching `Link`,
 returning them along with those that did not match any `Link`s.
 -}
-assignEvents : Nonempty Link -> Nonempty Event -> { matched : List ( Link, Nonempty Event ), unmatched : List Event }
+assignEvents : Nonempty Link -> Nonempty Event -> ( List ( Link, Nonempty Event ), List Event )
 assignEvents ms es =
     NE.toList es
         |> partitionMap (\e -> Maybe.map (\m -> ( m, e )) <| assign ms e)
-        |> (\( matched, unmatched ) ->
-                { matched = gatherByKey matched
-                , unmatched = unmatched
-                }
-           )
+        |> Tuple.mapFirst gatherByKey
 
 
 {-| Given a list of `Link`s, assign an `Event` to the first matching `Link`, if
