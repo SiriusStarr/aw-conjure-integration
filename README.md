@@ -90,6 +90,57 @@ Note that the `aw-conjure-integration` config folder should be located here:
    it will upload your time without further intervention on your part.  (You'll
    need to restart it if you close it or you restart your computer.)
 
+## CLI
+
+Note that settings provided via the CLI override any value found in the
+`settings.json` file.  For example, you can leave your PAT out of
+`settings.json` and instead just call `aw-conjure-integration -p <YOUR_PAT>`
+
+### Other Functionality
+
+* `--list-measures` -- List available measures from Conjure along with their IDs and exit
+
+### Config File Paths
+
+* `-c <path>` / `--categories <path>` -- Path to the categories file, overriding
+  `aw-category-export.json` in the config folder (if it exists).
+* `-s <path>` / `--settings <path>` -- Path to the settings file, overriding
+  `settings.json` in the config folder (if it exists).
+* `-l <path>` / `--links <path>` -- Path to the links file, overriding
+  `links.json` in the config folder (if it exists).
+
+### Settings
+
+These can simply be provided in the settings file, but ones passed via the CLI
+will override any found there.
+
+* `-b <minutes>` / `--bin-size <minutes>` -- `aw-conjure-integration` works on
+  the basis of periods of time, within which similar events are grouped
+  together, to avoid creating thousands of entries on Conjure as you alt-tab
+  between windows.  By default, this is **30 minutes**, but it may be changed in
+  the range from 5–60 minutes, provided that the value evenly divides an hour.
+  Decreasing the value produces finer resolution time tracking and more
+  "responsive" time tracking at the expense of having more measurements on
+  Conjure.  Note that no events are uploaded until at least 1 minute past the
+  end of a period, e.g. if you use the default 30 minute periods, events will be
+  uploaded at about 12:01, 12:31, 1:01, 1:31, etc., whereas with 10 minute
+  periods, they would be uploaded at 12:01, 12:11, 12:21, 12:31, etc.
+* `-g <Category|AppAndTitle>` / `--group-by <Category|AppAndTitle>` --
+  * `Category` (default) -- Group events that share the same category together
+    before uploading them to Conjure.  This protects your privacy (by ensuring
+    app and title info is never sent to Conjure) and cuts down on the number of
+    measurements per period created.
+  * `AppAndTitle` -- Group together events that share the same app and title.
+    This will upload this higher-resolution data to Conjure and puts such usage
+    data into Conjure (which may be a privacy concern for you).
+* `-p <PAT>` / `--pat <PAT>` -- Your Personal Access Token for the Conjure API.
+  You can make a new one [here](https://conjure.so/settings/api).  No value is
+  provided for this by default, as it is unique to each user.
+* `-u` / `--report-unmatched` -- Whether or not (the default) to report events
+  that do not match any links. These unmatched events will be logged at each
+  upload cycle.  If you don't have many links set up, this is a good way to get
+  ideas for new categories/links.
+
 ## Limitations
 
 * Conjure measures have to be manually created on the

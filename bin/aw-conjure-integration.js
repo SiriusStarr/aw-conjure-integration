@@ -54,7 +54,7 @@ program.addOption(
 program.addOption(
   new Option(
     '-p, --pat <PAT>',
-    "conjure.so Personal Access Token (if you don't want to include it in the config file)"
+    "conjure.so Personal Access Token (if you don't want to include it in the settings file)"
   )
 )
 
@@ -62,7 +62,7 @@ program.addOption(
 program.addOption(
   new Option(
     '-b, --bin-size <minutes>',
-    "Period in minutes to bin together related events (if you don't want to include it in the config file)"
+    "Period in minutes to bin together related events (if you don't want to include it in the settings file)"
   ).argParser(parseBinSize)
 )
 
@@ -70,14 +70,14 @@ program.addOption(
 program.addOption(
   new Option(
     '-g, --group-by <Category|AppAndTitle>',
-    "whether to group events by category or by app and title  (if you don't want to include it in the config file)"
+    "whether to group events by category or by app and title  (if you don't want to include it in the settings file)"
   ).choices(['Category', 'AppAndTitle'])
 )
 
 // Report unmatched flag
 program.option(
   '-u, --report-unmatched',
-  "report unmatched events (if you don't want to include it in the config file)"
+  "report unmatched events (if you don't want to include it in the settings file)"
 )
 
 // Links file option and default location
