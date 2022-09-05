@@ -1,5 +1,5 @@
 {
-  "name": "aw-conjure-integration",
+  "name": "@siriusstarr/aw-conjure-integration",
   "version": "1.0.0",
   "description": "ActivityWatch integration for conjure.so",
   "author": "SiriusStarr",
