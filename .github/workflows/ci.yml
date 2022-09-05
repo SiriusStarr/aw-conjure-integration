@@ -91,3 +91,87 @@ jobs:
     # Run all tests
     - name: Run tests
       run: npm test
+
+  build-elm:
+    needs: [test] # make sure all your other jobs succeed before saving Elm files
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '*'
+          # Cache global package data
+          cache: 'npm'
+
+      # Cache node_modules between runs until package-lock.json changes.
+      - name: Cache node_modules
+        id: internal-cache-node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: internal-node_modules-ubuntu-latest.x-${{ hashFiles('package-lock.json') }}
+
+      # Re-use ~/.elm between runs until elm.json, elm-tooling.json or
+      # review/elm.json changes. The Elm compiler saves downloaded Elm packages to
+      # ~/.elm, and elm-tooling saves downloaded tool executables there.
+      - name: Cache ~/.elm
+        uses: actions/cache@v3
+        with:
+          path: ~/.elm
+          key: elm-${{ hashFiles('elm.json', 'elm-tooling.json', 'review/elm.json') }}
+
+      - name: Install npm dependencies
+        if: steps.cache-node_modules.outputs.cache-hit != 'true'
+        env:
+          # If you have a `"postinstall": "elm-tooling install"` script in your
+          # package.json, this turns it into a no-op. We’ll run it in the next
+          # step because of the caching. If elm-tooling.json changes but
+          # package-lock.json does not, the postinstall script needs running but
+          # this step won’t.
+          NO_ELM_TOOLING_INSTALL: 1
+        run: npm ci
+
+      # Install tools from elm-tooling.json, unless we restored them from cache.
+      # package-lock.json and elm-tooling.json can change independently, so we
+      # need to install separately based on what was restored from cache. This is
+      # run even if we restored ~/.elm from cache to be 100% sure
+      # node_modules/.bin/ contains links to all your tools. `elm-tooling install`
+      # runs very fast when there’s nothing new to download so skipping the step
+      # doesn’t save much time.
+      - name: elm-tooling install
+        run: npx --no-install elm-tooling install
+
+      # Run build
+      - name: Run build
+        run: npm run build
+
+      - uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
+        with:
+          # The arguments for the `git add` command (see the paragraph below for more info)
+          # Default: '.'
+          add: '-f lib/*.cjs'
+
+          # Determines the way the action fills missing author name and email. Three options are available:
+          # - github_actor -> UserName <UserName@users.noreply.github.com>
+          # - user_info -> Your Display Name <your-actual@email.com>
+          # - github_actions -> github-actions <email associated with the github logo>
+          # Default: github_actor
+          default_author: github_actor
+
+          # The message for the commit.
+          # Default: 'Commit from GitHub Actions (name of the workflow)'
+          message: '🤖 Commit generated files'
+
+          # The way the action should handle pathspec errors from the add and remove commands. Three options are available:
+          # - ignore -> errors will be logged but the step won't fail
+          # - exitImmediately -> the action will stop right away, and the step will fail
+          # - exitAtEnd -> the action will go on, every pathspec error will be logged at the end, the step will fail.
+          # Default: ignore
+          pathspec_error_handling: exitImmediately
