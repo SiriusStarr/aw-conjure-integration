@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command, Option, InvalidArgumentError } from 'commander'
 import envPaths from 'env-paths'
 import fs from 'fs'
