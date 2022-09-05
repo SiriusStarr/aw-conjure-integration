@@ -39,12 +39,13 @@
     "preview-docs": "elm-doc-preview",
     "review": "elm-review --ignore-dirs src/Conjure --fix",
     "standard": "standard --fix",
-    "test": "npm-run-all --print-name --silent --sequential test:standard test:make test:format test:run test:review",
+    "test": "npm-run-all --print-name --silent --sequential test:standard test:make test:format test:run test:review test:dhall",
     "test:standard": "standard",
     "test:make": "elm make --docs=docs.json --output=/dev/null src/Bin/Run.elm && elm make --docs=docs.json --output=/dev/null src/Bin/ListMeasures.elm",
     "test:format": "elm-format src/ tests/ --validate",
     "test:run": "elm-test-rs --fuzz 1000",
-    "test:review": "elm-review --ignore-dirs src/Conjure "
+    "test:review": "elm-review --ignore-dirs src/Conjure",
+    "test:dhall": "find ./dhall ./config-example -type f -iname *.dhall -exec dhall lint --check {} +"
   },
   "standard": {
     "ignore": [
