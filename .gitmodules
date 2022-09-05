@@ -1,3 +1,6 @@
 [submodule "review"]
 	path = review
 	url = https://github.com/SiriusStarr/elm-review-rules
+[submodule "elm-graphql"]
+	path = elm-graphql
+	url = https://github.com/SiriusStarr/elm-graphql

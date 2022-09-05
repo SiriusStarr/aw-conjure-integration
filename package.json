@@ -37,19 +37,20 @@
     "postbuild:elm": "mv src/Bin/run.js lib/run.cjs && mv src/Bin/list-measures.js lib/list-measures.cjs",
     "postinstall": "elm-tooling install",
     "preview-docs": "elm-doc-preview",
-    "review": "elm-review --ignore-dirs src/Conjure --fix",
+    "review": "elm-review --ignore-dirs src/Conjure --ignore-dirs elm-graphql --fix",
     "standard": "standard --fix",
     "test": "npm-run-all --print-name --silent --sequential test:standard test:make test:format test:run test:review test:dhall",
     "test:standard": "standard",
     "test:make": "elm make --docs=docs.json --output=/dev/null src/Bin/Run.elm && elm make --docs=docs.json --output=/dev/null src/Bin/ListMeasures.elm",
     "test:format": "elm-format src/ tests/ --validate",
     "test:run": "elm-test-rs --fuzz 1000",
-    "test:review": "elm-review --ignore-dirs src/Conjure",
+    "test:review": "elm-review --ignore-dirs src/Conjure --ignore-dirs elm-graphql ",
     "test:dhall": "find ./dhall ./config-example -type f -iname *.dhall -exec dhall lint --check {} +"
   },
   "standard": {
     "ignore": [
-      "lib/xmlhttprequest.cjs"
+      "lib/xmlhttprequest.cjs",
+      "elm-graphql"
     ]
   }
 }
