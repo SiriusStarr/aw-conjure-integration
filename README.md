@@ -7,6 +7,8 @@
     * [Categories](#categories)
     * [Measures](#measures)
     * [Links](#links)
+  * [Behavior](#behavior)
+  * [Privacy](#privacy)
   * [Initial Setup and Configuration](#initial-setup-and-configuration)
   * [CLI](#cli)
     * [Other Functionality](#other-functionality)
@@ -50,6 +52,30 @@ interface, which is probably located [here](http://localhost:5600/#/settings)
 or more **Categories** in ActivityWatch and a single **Measure** on Conjure.
 This integration will then automatically upload **Events** that match those
 categories to that measure on Conjure.
+
+## Behavior
+
+When run, `aw-conjure-integration` uploads events from ActivityWatch to Conjure
+in the manner defined by your links (which link categories to measures).  When
+it is first launched, it deletes events back to the start of your current local
+day and reuploads them (so you can play around with different settings without
+fear of duplicate events).  It'll then just watch and upload events as periods
+pass (check out "bin size" in [settings](#settings) for information on the exact
+details of when events are uploaded).
+
+You can safely mix in manually added time tracking in the same measures on
+Conjure; this integration will only ever manipulate events made by itself, so it
+won't delete/overwrite manually entries in the same measure.
+
+## Privacy
+
+By default, events are grouped by category before uploading to Conjure, meaning
+only your category names get sent anywhere; your apps and window titles never
+leave the local system, so you maintain the privacy benefits of using
+ActivityWatch.  If you override this behavior by grouping by app and title
+instead, then this information obviously will be sent to Conjure, and you lose
+said privacy benefits (which may or may not be worth to you).  Check out "group
+by" in [settings](#settings) for more information.
 
 ## Initial Setup and Configuration
 
