@@ -26,6 +26,19 @@ jobs:
       with:
         submodules: true
 
+    - name: Setup Dhall
+      uses: SiriusStarr/setup-dhall@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Cache Dhall Outputs
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/dhall
+          ~/.cache/dhall-haskell
+        key: ${{ runner.os }}-dhall-docs
+
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
