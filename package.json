@@ -35,7 +35,7 @@
     "build:api": "elm-graphql https://api.conjure.so/graphql --base Conjure --scalar-codecs CustomScalarCodecs",
     "build:elm": "elm make --optimize src/Bin/Run.elm --output src/Bin/run.js && elm make --optimize src/Bin/ListMeasures.elm --output src/Bin/list-measures.js",
     "postbuild:elm": "mv src/Bin/run.js lib/run.cjs && mv src/Bin/list-measures.js lib/list-measures.cjs",
-    "postinstall": "elm-tooling install",
+    "postinstall": "node postinstall.js",
     "preview-docs": "elm-doc-preview",
     "review": "elm-review --ignore-dirs src/Conjure --ignore-dirs elm-graphql --fix",
     "standard": "standard --fix",
