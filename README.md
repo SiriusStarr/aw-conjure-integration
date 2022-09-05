@@ -1,6 +1,7 @@
 # aw-conjure-integration
 
 * [aw-conjure-integration](#aw-conjure-integration)
+  * [Installing](#installing)
   * [Concepts](#concepts)
     * [Events](#events)
     * [Categories](#categories)
@@ -13,6 +14,10 @@
     * [Settings](#settings)
   * [Limitations](#limitations)
   * [Acknowledgments](#acknowledgments)
+
+## Installing
+
+Install with npm with `npm install -g siriusstarr/aw-conjure-integration`.
 
 ## Concepts
 
