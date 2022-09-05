@@ -1,0 +1,24 @@
+[
+  {
+    "from": [
+      [
+        "Work",
+        "Programming"
+      ],
+      [
+        "Work",
+        "Accounting"
+      ]
+    ],
+    "to": "meas_firstmeasureid"
+  },
+  {
+    "from": [
+      [
+        "Leisure",
+        "Movies"
+      ]
+    ],
+    "to": "meas_othermeasureid"
+  }
+]
