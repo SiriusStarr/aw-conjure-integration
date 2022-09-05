@@ -1,12 +1,16 @@
-# `aw-conjure-integration`
+# aw-conjure-integration
 
-* [`aw-conjure-integration`](#aw-conjure-integration)
+* [aw-conjure-integration](#aw-conjure-integration)
   * [Concepts](#concepts)
     * [Events](#events)
     * [Categories](#categories)
     * [Measures](#measures)
     * [Links](#links)
-  * [Initial Setup/Configuration](#initial-setupconfiguration)
+  * [Initial Setup and Configuration](#initial-setup-and-configuration)
+  * [CLI](#cli)
+    * [Other Functionality](#other-functionality)
+    * [Config File Paths](#config-file-paths)
+    * [Settings](#settings)
   * [Limitations](#limitations)
   * [Acknowledgments](#acknowledgments)
 
@@ -42,7 +46,7 @@ or more **Categories** in ActivityWatch and a single **Measure** on Conjure.
 This integration will then automatically upload **Events** that match those
 categories to that measure on Conjure.
 
-## Initial Setup/Configuration
+## Initial Setup and Configuration
 
 Note that the `aw-conjure-integration` config folder should be located here:
 
