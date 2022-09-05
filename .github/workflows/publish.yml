@@ -6,7 +6,7 @@ on:
 
 jobs:
   ci:
-    uses: ./ci.yml
+    uses: ./.github/workflows/ci.yml
 
   publish-gpr:
     needs: ci
