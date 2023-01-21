@@ -124,8 +124,8 @@ measurementWrite groupBy allEvents =
                 InputObject.buildMeasurementBatchOperationsV2MutationInput
                     (\r ->
                         { r
-                            | createOrUpdate = OptionalArgument.Present allUpdates
-                            , clientMutationId = OptionalArgument.Present clientMutationId
+                            | clientMutationId = OptionalArgument.Present clientMutationId
+                            , createOrUpdate = OptionalArgument.Present allUpdates
                         }
                     )
             }
@@ -173,8 +173,8 @@ makeMeasurementDeletion measures deleteEras =
                 InputObject.buildMeasurementBatchOperationsV2MutationInput
                     (\r ->
                         { r
-                            | destroy = OptionalArgument.Present allDeletions
-                            , clientMutationId = OptionalArgument.Present clientMutationId
+                            | clientMutationId = OptionalArgument.Present clientMutationId
+                            , destroy = OptionalArgument.Present allDeletions
                         }
                     )
             }
