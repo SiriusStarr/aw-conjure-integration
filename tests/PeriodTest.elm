@@ -188,7 +188,8 @@ sinceStartOfDaySuite =
                                             -- Last period should be the currently generated one
                                             acc && lastPeriod == Period.lastComplete binSize time
                                        )
-                                    |> Expect.true "Gap in generated periods!"
+                                    |> Expect.equal True
+                                    |> Expect.onFail "Gap in generated periods!"
                             , \() ->
                                 -- First era should be the start of the first era in the day
                                 NE.head eras
@@ -201,7 +202,8 @@ sinceStartOfDaySuite =
                                             -- Last era should be the current one
                                             acc && lastEra == Period.era time
                                        )
-                                    |> Expect.true "Gap in generated eras!"
+                                    |> Expect.equal True
+                                    |> Expect.onFail "Gap in generated eras!"
                             ]
                             ()
 
