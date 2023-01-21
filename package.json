@@ -24,15 +24,15 @@
   },
   "dependencies": {
     "aw-client": "^0.3.3",
-    "commander": "^9.4.0",
+    "commander": "^10.0.0",
     "env-paths": "^3.0.0"
   },
   "devDependencies": {
-    "@dillonkearns/elm-graphql": "^4.2.4",
+    "@dillonkearns/elm-graphql": "^4.3.1",
     "elm-doc-preview": "^5.0.5",
-    "elm-review": "^2.7.3",
+    "elm-review": "^2.9.1",
     "elm-test": "^0.19.1-revision9",
-    "elm-tooling": "^1.8.0",
+    "elm-tooling": "^1.12.0",
     "npm-run-all": "^4.1.5",
     "standard": "^17.0.0"
   },
@@ -50,7 +50,7 @@
     "test:make": "elm make --docs=docs.json --output=/dev/null src/Bin/Run.elm && elm make --docs=docs.json --output=/dev/null src/Bin/ListMeasures.elm",
     "test:format": "elm-format src/ tests/ --validate",
     "test:run": "elm-test-rs --fuzz 1000",
-    "test:review": "elm-review --ignore-dirs src/Conjure --ignore-dirs elm-graphql ",
+    "test:review": "elm-review --ignore-dirs src/Conjure --ignore-dirs elm-graphql",
     "test:dhall": "find ./dhall ./config-example -type f -iname *.dhall -exec dhall lint --check {} +"
   },
   "standard": {
