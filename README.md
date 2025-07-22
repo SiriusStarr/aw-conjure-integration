@@ -1,21 +1,8 @@
 # aw-conjure-integration
 
-* [aw-conjure-integration](#aw-conjure-integration)
-  * [Installing](#installing)
-  * [Concepts](#concepts)
-    * [Events](#events)
-    * [Categories](#categories)
-    * [Measures](#measures)
-    * [Links](#links)
-  * [Behavior](#behavior)
-  * [Privacy](#privacy)
-  * [Initial Setup and Configuration](#initial-setup-and-configuration)
-  * [CLI](#cli)
-    * [Other Functionality](#other-functionality)
-    * [Config File Paths](#config-file-paths)
-    * [Settings](#settings)
-  * [Limitations](#limitations)
-  * [Acknowledgments](#acknowledgments)
+## ⚠️ Conjure Is No More ⚠️
+
+This project has been archived, since it no longer serves an extant service.
 
 ## Installing
 
